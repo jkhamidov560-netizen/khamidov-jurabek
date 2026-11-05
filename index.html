@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jurabek Khamidov</title>
+<meta name="description" content="Personal website of Jurabek Khamidov, a student interested in machine learning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#eef1f6; --ink:#14213d; --muted:#4a5672; --signal:#5b4bff; --line:#c9d0de; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Bricolage Grotesque", system-ui, sans-serif; line-height:1.6; }
+  a { color:var(--signal); }
+  a:focus-visible, button:focus-visible { outline:3px solid var(--signal); outline-offset:3px; }
+  .hero { position:relative; height:100vh; min-height:520px; overflow:hidden; }
+  #net { position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+  .hero-text { position:absolute; left:6vw; bottom:12vh; right:6vw; pointer-events:none; }
+  h1 { margin:0; font-size:clamp(3rem, 11vw, 8.5rem); line-height:.95; font-weight:800; letter-spacing:-.03em; }
+  .tag { margin:1rem 0 0; max-width:34ch; font-size:clamp(1.05rem, 2.2vw, 1.4rem); color:var(--muted); }
+  .hint { position:absolute; right:6vw; top:5vh; margin:0; font-size:.95rem; color:var(--muted); }
+  main { max-width:760px; margin:0 auto; padding:5rem 1.5rem 4rem; }
+  h2 { font-size:1.9rem; margin:3.5rem 0 1rem; letter-spacing:-.01em; }
+  h2:first-child { margin-top:0; }
+  p { max-width:62ch; }
+  .projects { list-style:none; padding:0; margin:0; }
+  .projects li { padding:1.1rem 0; border-top:1px solid var(--line); }
+  .projects li:last-child { border-bottom:1px solid var(--line); }
+  .projects strong { display:block; font-size:1.15rem; }
+  footer { max-width:760px; margin:0 auto; padding:0 1.5rem 4rem; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <p class="hint">Move your cursor. Click to add a neuron.</p>
+  <div class="hero-text">
+    <h1>Jurabek<br>Khamidov</h1>
+    <p class="tag">Student learning how machines learn.</p>
+  </div>
+</section>
+
+<main>
+  <h2>About</h2>
+  <p>I study machine learning and like building small tools that work. This page is my home base: what I'm making, what I'm learning, and where to find me.</p>
+
+  <h2>Projects</h2>
+  <ul class="projects">
+    <li><strong>Video downloader</strong>A Python script built on yt-dlp that saves a video from a link.</li>
+    <li><strong>Machine learning course notebooks</strong>Jupyter notebooks and exercises from my coursework.</li>
+    <li><strong>This website</strong>Plain HTML hosted on GitHub Pages. The network above is drawn live in your browser.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>Find my code on <a href="https://github.com/jkhamidov560-netizen">GitHub</a>.</p>
+</main>
+
+<footer>&copy; 2026 Jurabek Khamidov</footer>
+
+<script>
+(function () {
+  var c = document.getElementById("net"), g = c.getContext("2d");
+  var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var W, H, dpr, nodes = [], mouse = { x: -999, y: -999 };
+  var LINK = 130, REACH = 170, MAX = 150;
+
+  function make(x, y) {
+    var a = Math.random() * 6.283, s = .2 + Math.random() * .3;
+    return { x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s };
+  }
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = c.clientWidth; H = c.clientHeight;
+    c.width = W * dpr; c.height = H * dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var want = Math.min(MAX, Math.round(W * H / 11000));
+    while (nodes.length < want) nodes.push(make(Math.random() * W, Math.random() * H));
+    nodes.length = Math.min(nodes.length, Math.max(want, 1));
+    if (still) draw();
+  }
+  function draw() {
+    g.clearRect(0, 0, W, H);
+    for (var i = 0; i < nodes.length; i++) {
+      var a = nodes[i], da = Math.hypot(a.x - mouse.x, a.y - mouse.y), hot = da < REACH;
+      for (var j = i + 1; j < nodes.length; j++) {
+        var b = nodes[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < LINK) {
+          var lit = hot && Math.hypot(b.x - mouse.x, b.y - mouse.y) < REACH;
+          g.strokeStyle = lit ? "rgba(91,75,255," + (1 - d / LINK) + ")" : "rgba(20,33,61," + (.35 * (1 - d / LINK)) + ")";
+          g.lineWidth = lit ? 1.6 : 1;
+          g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
+        }
+      }
+      if (hot) {
+        g.strokeStyle = "rgba(91,75,255," + (1 - da / REACH) * .8 + ")";
+        g.lineWidth = 1.2;
+        g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(mouse.x, mouse.y); g.stroke();
+      }
+      g.fillStyle = hot ? "#5b4bff" : "#14213d";
+      g.beginPath(); g.arc(a.x, a.y, hot ? 4 : 2.6, 0, 6.283); g.fill();
+    }
+  }
+  function step() {
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+    }
+    draw();
+    requestAnimationFrame(step);
+  }
+  function pos(e) {
+    var r = c.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  c.addEventListener("pointermove", function (e) { mouse = pos(e); if (still) draw(); });
+  c.addEventListener("pointerleave", function () { mouse = { x: -999, y: -999 }; if (still) draw(); });
+  c.addEventListener("click", function (e) {
+    var p = pos(e);
+    nodes.push(make(p.x, p.y));
+    if (nodes.length > MAX + 40) nodes.shift();
+    if (still) draw();
+  });
+  window.addEventListener("resize", resize);
+  resize();
+  if (!still) step();
+})();
+</script>
+</body>
+</html>
